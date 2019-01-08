@@ -1,0 +1,129 @@
+#+TITLE: Prelab Quiz
+#+SUBTITLE: Experiment 5a - Pressure Measurement in a Thin-Wall Cylinder
+
+#+LATEX_HEADER: \definecolor{bg}{rgb}{0.95,0.95,0.95}
+#+LATEX_HEADER: \setminted{frame=single,bgcolor=bg}
+
+
+* Background Information
+
+
+* Prelab Quiz
+** Question 1
+An aluminum (E=70GPa) pop can is 123mm high, 66mm in diameter and has a wall thickness of 0.1mm.  Strain gauges are attached at the centre of the cylindrical wall.  What circumferential and axial strains would be produced by an internal pressure of 0.1MPa ?
+*** Solution
+If we approximate the can as a thin walled cylinder, we can use these formulas to calculate the stress
+\[
+\sigma_\theta = \frac{Pr}{t}, \sigma_a = \frac{Pr}{2t}
+\]
+Where:
+\begin{align*}
+\sigma_\theta &= \text{circumferential stress} \\
+\sigma_A &= \text{axial stress} \\
+P &= \text{pressure} \\
+r &= \text{radius of the cylinder} \\
+t &= \text{thickness of the wall} 
+\end{align*}
+
+Under elastic deformation, the strain of an isotropic body can simply be calculated by dividing the stress by it's Young's modulus
+
+First lets create functions to calculate these stresses
+#+BEGIN_SRC ipython :results none
+
+def circ_stress(pressure, radius, thickness):
+    return pressure*radius/thickness
+
+def axial_stress(pressure, radius, thickness):
+    return pressure*radius/(2*thickness)
+
+#+END_SRC
+
+With this, we can approximately calculate the strain in the can
+
+#+BEGIN_SRC ipython :exports both :results raw drawer
+
+E = 70 * 10**9
+pressure = 0.1 * 10**6
+radius = (66 * 10**-3)/2
+thickness = (0.1 * 10**-3)
+
+sigma_t = circ_stress(pressure, radius, thickness)
+sigma_a = axial_stress(pressure, radius, thickness)
+
+epsilon_t = sigma_t/E
+epsilon_a = sigma_a/E
+
+
+f'Axial strain: {epsilon_a:.2E}, Circumferential strain: {epsilon_t:.2E}'
+
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+# Out[5]:
+: 'Axial strain: 2.36E-04, Circumferential strain: 4.71E-04'
+:END:
+
+
+
+** Question 2
+Describe the electrical circuits used for quarter, half and full bridge strain gauge circuits.  Describe the uses and features of each circuit.
+*** Solution
+A quarter bridge strain gauge circuit is a circuit where one resistor in a Wheatstone bridge is replaced with a strain gauge.
+Assuming the strain gauge matches the resistance of the other resistors under no load, the output of the bridge will be 0V and change when the gauge is strained.
+However, in most applications the physical distance between strain gauge and the rest of the bridge will be large enough such that the resistance of the wires connecting them will affect the reading.
+While this error can be compensated for by calibrating the other resistor values, the actual resistance of the wires will still be there, meaning that the range and precision of the reading is lessened
+
+The effects of resistance in the lead wires can be lessened by using a three wire configuration, where one resistor in the bridge is connected only to the strain gauge, and then a third wire connects from the same pad on the strain gauge to the voltmeter.
+
+In situations where more precision is needed, a half bridge circuit can be used.
+A half bridge circuit is one where a pair of resistors (both connected to the same output terminal) are replaced with identical strain gauges, and then placed on the test specimen such that they experience the opposite stress when the specimen is loaded.
+This eliminates the measurement drift caused by temperature and the need for a three wire configuration because both strain gauges will be at the same temperature, and also provides a larger voltage range and/or precision for a given excitation voltage since the resistance of both arms will change in an inverse manner.
+
+If even more precision is required, a full bridge configuration can be used.
+A full bridge circuit is one where all bridge arms are replaced with strain gauges, and placed such that electrically adjacent gauges will experience opposite stresses when the specimen is loaded.
+Again this configuration eliminates measurement drift caused by temperature for the same reasons, and provide even greater sensitivity.
+The full bridge configuration has a output voltage proportional to the strain experienced since all four resistances in the bridge change in relation to the stress, while the other configurations will only provide an output voltage that is roughly proportional at low enough stresses.
+
+While ideally full bridge circuits should always be used, it may not always be possible to place the strain gauges on the test specimen such that they satisfy the above conditions due to the geometry of the part.
+
+#+BEGIN_SRC ipython :results raw drawer
+%matplotlib inline
+%config InlineBackand.figure_format = 'svg'
+
+import SchemDraw as schem
+import SchemDraw.elements as e
+
+
+d = schem.Drawing()
+
+linputs = {'cnt':2, 'labels':['a','b']}
+strain_gauge = e.blackbox(3*d.unit, d.unit, linputs=linputs)
+d.add(e.SOURCE)
+d.add(strain_gauge)
+d.add(e.RES)
+
+d.draw()
+d.save('quarter.svg')
+
+
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+# Out[14]:
+[[file:./obipy-resources/GeOrKD.png]]
+:END:
+
+** Question 3
+Describe two practical methods for compensating for temperature changes when using strain gauges.
+*** Solution
+Using a 3 wire quarter bridge configuration will eliminate error caused by temperature changes of the lead wire.
+Using a half or full bridge configuration will eliminate error caused by temperature changes of the strain gauges themselves.
+
+** Question 4
+What is reason for using a three-wire connect to a strain gauge ?
+*** Solution
+Assuming no current flows at the voltage output (i.e. the multimeter is high impedance), the resistance (changes) of the wire directly connected to the output is negligible.
+The remaining two wires add resistance to the arms on either side of the bridge, one on the "high" side of the strain gauge, and one on the adjacent resistor. 
+Assuming the lengths and temperatures of these wires are identical and their lengths are the same, the resistance added to either side of the bridge is also identical, lessening the effect of temperature on the strain measurement.
