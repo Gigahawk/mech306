@@ -1,0 +1,310 @@
+#+TITLE: Prelab Quiz
+#+SUBTITLE: Experiment 2 - Strength of Fasterners
+
+#+LATEX_HEADER: \definecolor{bg}{rgb}{0.95,0.95,0.95}
+#+LATEX_HEADER: \setminted{frame=single,bgcolor=bg}
+
+* Background Information
+
+The relationship between the torque applied to a fastener and it's preload is[fn:textbook]
+\[
+T_{in} = F_P \left( \frac{P}{2 \pi} + \frac{\mu_t r_t}{\cos (\beta)} + \mu_n r_n \right)
+\]
+
+Where:
+\begin{align*}
+T_{in} &= \text{torque applied to the fastener} \\
+F_P &= \text{preload created in the fastener} \\
+P &= \text{thread lead (travel per revolution)} \\
+\mu_t &= \text{coeff. of friction between the threads} \\
+r_t &= \text{effective contact radius of the threads} \\
+\beta &= \text{the half-angle of the threads (30$^\circ$ for UN or ISO threads)} \\
+\mu_n &= \text{coeff. of friction between face of the head and the joint} \\
+r_n &= \text{effective contact radius between the nut and joint surface} 
+\end{align*}
+
+[fn:textbook] More information about this formula can be found on page 219 (235/952) of Bickford, John H /An Introduction to the Design and Behavior of Bolted Joints/, 3^{rd} edition. 
+Check Slack for a copy.
+
+* Prelab Quiz
+** Question 1
+Using the theory described in the lab manual, calculate the torque required to obtain a preload of 80% of the breaking strength of a 5/16” UNC Grade 2 machine screw. Base your calculations on the maximum friction factor for hard steel on hard steel (lubricated) that is listed in Appendix A of the lab manual. 
+
+*** Solution
+First lets create a function to calculate the torque
+#+BEGIN_SRC ipython :results none
+
+from math import pi, cos
+
+## Calculates the torque in Nm required to obtain a specific preload
+def calculate_torque(preload,
+                     lead,
+                     mu_thread,
+                     r_thread,
+                     half_angle,
+                     mu_face,
+                     r_face):
+    
+    torque = preload * (lead / 2*pi +
+                        mu_thread*r_thread / cos(half_angle) +
+                        mu_face*r_face)
+    return torque
+
+#+END_SRC
+
+Using the tables in Appendix A of the lab manual, we can use this to find the breaking force for a 5/16" screw in newtons.
+
+#+BEGIN_SRC ipython :exports both :results raw drawer
+
+in_to_m = 0.0254
+psi_to_pa = 6894.76
+
+uts_psi = 74000
+uts_Pa = uts_psi * psi_to_pa
+
+tensile_area_in = 0.0524
+tensile_area_m = tensile_area_in * (in_to_m)**2
+
+utf_N = uts_Pa * tensile_area_m
+
+preload = utf_N * 0.8
+
+f'{preload:.2f} N'
+
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+# Out[19]:
+: '13798.74 N'
+:END:
+
+
+Most of the other values can be directly taken from the lab manual.
+
+#+BEGIN_SRC ipython :results none
+
+from statistics import mean
+
+lead_in = 1/18
+lead = lead_in * in_to_m
+
+# For hard steel on hard steel with Atlantic spindle oil
+mu_thread = 0.23
+
+# Using average pitch diameter
+r_thread_in = mean([0.2752, 0.2712])/2
+r_thread = r_thread_in * in_to_m
+
+half_angle = 30 * (pi/180)
+
+# Presumably if the thread gets lubricated the face does too
+mu_face = mu_thread
+
+#+END_SRC
+
+The contact radius of the nut isn't provided from the lab manual.
+I will use the width across flats value taken from [[http://www.engineershandbook.com/Tables/nuts.htm][engineershandbook.com]][fn:nut_rad]
+
+[fn:nut_rad] The lab manual describes the effective contact radius of a nut as "the average radius of a nut".
+This is rather ambiguous, but intuitively should be the average between the pitch radius of the nut and its [[https://en.wikipedia.org/wiki/Apothem][apothem]] since the contact face of a nut against a surface is a circle tangent to the flat edges.
+
+
+#+BEGIN_SRC ipython :results raw drawer
+
+pitch_rad_in = mean([0.2764, 0.2817])/2
+pitch_rad = pitch_rad_in * in_to_m
+
+apothem_in = mean([0.5, 0.489])/2
+apothem = apothem_in * in_to_m
+
+r_face = mean([apothem, pitch_rad])
+
+f'{(r_face*1000):.2f} mm'
+
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+# Out[21]:
+: '4.91 mm'
+:END:
+
+With all of the values calculated we can now plug them into our formula
+
+#+BEGIN_SRC ipython :exports both :results raw drawer
+
+torque = calculate_torque(preload,
+                          lead,
+                          mu_thread,
+                          r_thread,
+                          half_angle,
+                          mu_face,
+                          r_face)
+f'{torque:.2f} Nm'
+
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+# Out[22]:
+: '58.89 Nm'
+:END:
+
+
+
+
+** Question 2
+Estimate how many turns of the nut are required to achieve the 80% preload for a bolt with 7” length between head and nut.
+
+*** Solution
+Equation (8.2) of /An Introduction to the Design and Behavior of Bolted Joints/, 3^{rd} edition gives the turn-preload equation:
+\[
+F_P = K_B \theta_R  \frac{P}{2\pi}
+\]
+Where:
+\begin{align*}
+F_P &= \text{preload created in the fastener} \\
+K_B &= \text{bolt stiffness} \\
+\theta_R &= \text{nut rotation with respect to the bolt} \\
+P &= \text{thread lead (travel per revolution)} \\
+\end{align*}
+
+First let's create a function to calculate the number of turns given the necessary parameters.
+#+BEGIN_SRC ipython :results none
+
+def calculate_turns(preload,
+                    lead,
+                    stiffness):
+    theta = (preload * 2*pi) / (stiffness * lead)
+    turns = theta / (2*pi)
+    return turns
+
+
+
+#+END_SRC
+
+Assuming a steel screw with an elastic modulus of 200GPa [fn:stiffness], we can calculate the stiffness of the screw
+
+[fn:stiffness] Average value for steel from Table 3 (page 10) of [[https://uccshes.files.wordpress.com/2012/09/resource_guide_fastener_hardware.pdf][Reid Supply Company's /Fasteners and Hardware Resource Guide/]]
+
+
+#+BEGIN_SRC ipython :exports both :results raw drawer
+
+E = 200 * 10**9
+L = 7 * in_to_m
+area_cross = pi * r_thread**2
+
+stiffness = E * area_cross / L
+
+f'{stiffness:.2f} N/m'
+
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+# Out[24]:
+: '42541906.00 N/m'
+:END:
+
+We can now calculate the answer[fn:plastic]
+
+[fn:plastic] A preload of 80% of the ultimate tensile stress exceeds that the yield strength and so a bolt under these conditions would be under plastic deformation, which this calculation doesn't take into account.
+The real answer would probably be slightly higher.
+
+
+#+BEGIN_SRC ipython :exports both :results raw drawer
+turns = calculate_turns(preload,
+                        lead,
+                        stiffness)
+
+f'{turns:.2f} number of turns'
+
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+# Out[25]:
+: '0.23 number of turns'
+:END:
+
+
+** Question 3
+Using your calculated torque with the minimum friction factors for the same conditions, calculate the preload and compare this to the published breaking strength of the screw. Consider whether static or sliding friction is applicable to this calculation.
+
+*** Solution
+First we create a function to calculate the preload.
+
+#+BEGIN_SRC ipython :results none
+
+def calculate_preload(torque,
+                      lead,
+                      mu_thread,
+                      r_thread,
+                      half_angle,
+                      mu_face,
+                      r_face):
+    preload = torque / (lead / 2*pi +
+                        mu_thread*r_thread / cos(half_angle) +
+                        mu_face*r_face)
+    return preload
+
+#+END_SRC
+
+The minimum values of friction can be found in Appendix A of the lab manual
+
+#+BEGIN_SRC ipython :results none
+
+# static friction for stearic acid
+mu_thread_min = 0.0052
+mu_face_min = mu_thread_min
+
+#+END_SRC
+
+Now we can calculate the preload.
+#+BEGIN_SRC ipython :exports both :results raw drawer
+
+preload = calculate_preload(torque,
+                            lead,
+                            mu_thread_min,
+                            r_thread,
+                            half_angle,
+                            mu_face_min,
+                            r_face)
+
+f'{preload:.2f} N'
+
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+# Out[28]:
+: '26023.80 N'
+:END:
+
+The resulting stress in the screw can be calculated by:
+
+#+BEGIN_SRC ipython :exports both :results raw drawer
+
+stress = preload / area_cross
+stress_psi = stress / psi_to_pa
+
+f'{stress:.2f} psi'
+
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+# Out[29]:
+: '688100732.38 psi'
+:END:
+
+This value greatly exceeds the breaking strength of the screw so meaning that the threads will still be sliding when the screw fails.
+However, the difference in the resulting preload is negligible considering how large the difference between the resulting preload stress and the breaking strength is.
+
+** Question 4
+What factors other than lubrication do you think may affect the friction? Why it is not a good idea to specify dry conditions when working with devices where fastener failure can cause severe damage or safety concerns? 
+
+*** Solution
+Surface finish of the threads, material of screw/nut, cleanliness of screw hole.
+These factors are hard to control for in the absense of a lubricant.
