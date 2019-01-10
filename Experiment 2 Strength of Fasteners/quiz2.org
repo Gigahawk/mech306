@@ -45,7 +45,7 @@ def calculate_torque(preload,
                      mu_face,
                      r_face):
     
-    torque = preload * (lead / 2*pi +
+    torque = preload * (lead / (2*pi) +
                         mu_thread*r_thread / cos(half_angle) +
                         mu_face*r_face)
     return torque
@@ -75,7 +75,7 @@ f'{preload:.2f} N'
 
 #+RESULTS:
 :RESULTS:
-# Out[19]:
+# Out[38]:
 : '13798.74 N'
 :END:
 
@@ -110,7 +110,7 @@ I will use the width across flats value taken from [[http://www.engineershandboo
 This is rather ambiguous, but intuitively should be the average between the pitch radius of the nut and its [[https://en.wikipedia.org/wiki/Apothem][apothem]] since the contact face of a nut against a surface is a circle tangent to the flat edges.
 
 
-#+BEGIN_SRC ipython :results raw drawer
+#+BEGIN_SRC ipython :results raw drawer :exports both
 
 pitch_rad_in = mean([0.2764, 0.2817])/2
 pitch_rad = pitch_rad_in * in_to_m
@@ -126,7 +126,7 @@ f'{(r_face*1000):.2f} mm'
 
 #+RESULTS:
 :RESULTS:
-# Out[21]:
+# Out[40]:
 : '4.91 mm'
 :END:
 
@@ -147,8 +147,8 @@ f'{torque:.2f} Nm'
 
 #+RESULTS:
 :RESULTS:
-# Out[22]:
-: '58.89 Nm'
+# Out[41]:
+: '31.40 Nm'
 :END:
 
 
@@ -203,7 +203,7 @@ f'{stiffness:.2f} N/m'
 
 #+RESULTS:
 :RESULTS:
-# Out[24]:
+# Out[43]:
 : '42541906.00 N/m'
 :END:
 
@@ -224,7 +224,7 @@ f'{turns:.2f} number of turns'
 
 #+RESULTS:
 :RESULTS:
-# Out[25]:
+# Out[44]:
 : '0.23 number of turns'
 :END:
 
@@ -244,7 +244,7 @@ def calculate_preload(torque,
                       half_angle,
                       mu_face,
                       r_face):
-    preload = torque / (lead / 2*pi +
+    preload = torque / (lead / (2*pi) +
                         mu_thread*r_thread / cos(half_angle) +
                         mu_face*r_face)
     return preload
@@ -278,8 +278,8 @@ f'{preload:.2f} N'
 
 #+RESULTS:
 :RESULTS:
-# Out[28]:
-: '26023.80 N'
+# Out[48]:
+: '115896.83 N'
 :END:
 
 The resulting stress in the screw can be calculated by:
@@ -295,8 +295,8 @@ f'{stress:.2f} psi'
 
 #+RESULTS:
 :RESULTS:
-# Out[29]:
-: '688100732.38 psi'
+# Out[49]:
+: '3064452142.01 psi'
 :END:
 
 This value greatly exceeds the breaking strength of the screw so meaning that the threads will still be sliding when the screw fails.
@@ -308,3 +308,4 @@ What factors other than lubrication do you think may affect the friction? Why it
 *** Solution
 Surface finish of the threads, material of screw/nut, cleanliness of screw hole.
 These factors are hard to control for in the absense of a lubricant.
+The thread geometry (in the nut or bolt) would also affect the friction, but this is easy to specify.
