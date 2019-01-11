@@ -1,0 +1,276 @@
+#+TITLE: MECH 306 Tutorial 1:
+#+SUBTITLE: Analysis and Graphical Representation of Data
+
+#+LATEX_HEADER: \definecolor{bg}{rgb}{0.95,0.95,0.95}
+#+LATEX_HEADER: \setminted{frame=single,bgcolor=bg,samepage=true}
+#+LATEX_HEADER: \setlength{\parindent}{0pt}
+#+LATEX_HEADER: \usepackage{float}
+
+* Histogram Exercise
+** Importing the data
+For the sake of brevity, I have exported the initial ~BoltData~ variable to a separate file.
+
+Let's import it first.
+#+BEGIN_SRC matlab :session :exports code :results none
+
+ans = load('boltdata');
+
+#+END_SRC
+
+We can check that the data loaded correctly by checking its size.
+#+BEGIN_SRC matlab :session :exports both :results code
+
+ans = size(BoltData)
+
+#+END_SRC
+
+#+RESULTS:
+#+BEGIN_SRC matlab
+| 91 | 3 |
+#+END_SRC
+
+
+
+** Removing incorrect results
+Now that the data has been imported into MATLAB, we can start removing invalid data from our analysis.
+
+*** Invalid bolt numbers
+There were only 12 types of bolts handed out during the experiment, and the only valid bolt ID numbers are integers from 1-12
+
+Let's use a new variable to hold our cleaned data set.
+#+BEGIN_SRC matlab :session :exports code :results none
+
+cleanBoltData = BoltData;
+
+#+END_SRC
+
+Now we create a test for rows of that match our criteria
+#+BEGIN_SRC matlab :session :exports code :results none
+
+% Create a column vector for every row in cleanBoltData such that
+% rows where the first item is an integer between 1 and 12 are
+% equal to one, and zero otherwise
+filter = cleanBoltData(:,1) >= 1 & cleanBoltData(:,1) <=12 ...
+         & mod(cleanBoltData(:,1),1) == 0;
+
+#+END_SRC
+
+With this filter we can remove unwanted rows from our data.
+#+BEGIN_SRC matlab :session :exports code :results none
+
+% Select all rows in cleanBoltData where the corresponding value in filter is one
+cleanBoltData = cleanBoltData(filter,:);
+
+#+END_SRC
+
+We can double check that rows have been removed by checking the size again
+
+#+BEGIN_SRC matlab :session :exports both :results code
+
+ans = size(cleanBoltData)
+
+#+END_SRC
+
+#+RESULTS:
+#+BEGIN_SRC matlab
+| 88 | 3 |
+#+END_SRC
+
+#+RESULTS:
+
+*** Removing unreasonable lengths
+According to the tutorial instructions reasonable bolt length measurements should be between 72 and 115 millimetres, so we remove any values outside of that range.
+
+#+BEGIN_SRC matlab :session :exports code :results none
+
+filter = cleanBoltData(:,2) >= 72 & cleanBoltData(:,2) <= 115;
+cleanBoltData = cleanBoltData(filter,:);
+
+#+END_SRC
+
+Again we can double check that rows have been removed by checking the size again
+
+#+BEGIN_SRC matlab :session :exports both :results code
+
+ans = size(cleanBoltData)
+
+#+END_SRC
+
+#+RESULTS:
+#+BEGIN_SRC matlab
+| 72 | 3 |
+#+END_SRC
+
+*** Removing unreasonable diameters
+According to the tutorial instructions reasonable bolt diameter measurements should be between 12 and 16 millimetres, so we remove any values outside of that range.
+
+#+BEGIN_SRC matlab :session :exports code :results none
+
+filter = cleanBoltData(:,3) >= 12 & cleanBoltData(:,3) <= 16;
+cleanBoltData = cleanBoltData(filter,:);
+
+#+END_SRC
+
+Again we can double check that rows have been removed by checking the size again
+
+#+BEGIN_SRC matlab :session :exports both :results code
+
+ans = size(cleanBoltData)
+
+#+END_SRC
+
+#+RESULTS:
+#+BEGIN_SRC matlab
+| 61 | 3 |
+#+END_SRC
+
+*** Further removing outliers
+Now that the obvious outliers have been removed we can graph the histograms for the bolt length and diameter
+#+BEGIN_SRC matlab :session :exports both :results file
+name = 'initial_len.eps';
+histogram(cleanBoltData(:,2),40); % need many bins because of bimodal distribution
+title('Bolt Length')
+xlabel('Bolt Length, mm')
+ylabel('Number of Bolts')
+
+set(gcf, 'PaperUnits', 'inches', 'PaperPosition', [0 0 7 5])
+
+saveas(gcf, name)
+ans = name
+
+#+END_SRC
+
+#+ATTR_LaTeX: :placement [H]
+#+CAPTION: Histogram of bolt length after removing most of the invalid data label:len1 
+#+RESULTS:
+[[file:initial_len.eps]]
+
+#+BEGIN_SRC matlab :session :exports both :results file
+name = 'initial_dia.eps';
+histogram(cleanBoltData(:,3),8);
+title('Bolt Diameter')
+xlabel('Bolt Diameter, mm')
+ylabel('Number of Bolts')
+
+set(gcf, 'PaperUnits', 'inches', 'PaperPosition', [0 0 7 5])
+
+saveas(gcf, name)
+ans = name
+
+#+END_SRC
+
+#+ATTR_LaTeX: :placement [H]
+#+CAPTION: Histogram of bolt diameters after removing most of the invalid data 
+#+RESULTS:
+[[file:initial_dia.eps]]
+
+
+From Figure ref:len1 it appears that there are still outliers in the middle of the two peaks.
+
+Let's remove values between 70 and 80 millimetres as well as between 100 and 120 millimetres.
+#+BEGIN_SRC matlab :session :exports code :results none
+
+filter = (cleanBoltData(:,2) >= 70 & cleanBoltData(:,2) <= 80) | ...
+         (cleanBoltData(:,2) >= 100 & cleanBoltData(:,2) <= 120);
+cleanBoltData = cleanBoltData(filter,:);
+
+#+END_SRC
+
+** Final Results
+
+Let's plot the final set of data.
+
+#+BEGIN_SRC matlab :session :exports both :results file
+name = 'final_len.eps';
+histogram(cleanBoltData(:,2),40); % need many bins because of bimodal distribution
+title('Bolt Length')
+xlabel('Bolt Length, mm')
+ylabel('Number of Bolts')
+
+set(gcf, 'PaperUnits', 'inches', 'PaperPosition', [0 0 7 5])
+
+saveas(gcf, name)
+ans = name
+
+#+END_SRC
+
+#+ATTR_LaTeX: :placement [H]
+#+CAPTION: Histogram of bolt lengths after removing all of the invalid data 
+#+RESULTS:
+[[file:final_len.eps]]
+
+#+BEGIN_SRC matlab :session :exports both :results file
+name = 'final_dia.eps';
+histogram(cleanBoltData(:,3),8);
+title('Bolt Diameter')
+xlabel('Bolt Diameter, mm')
+ylabel('Number of Bolts')
+
+set(gcf, 'PaperUnits', 'inches', 'PaperPosition', [0 0 7 5])
+
+saveas(gcf, name)
+ans = name
+
+#+END_SRC
+
+#+ATTR_LaTeX: :placement [H]
+#+CAPTION: Histogram of bolt diameters after removing all of the invalid data 
+#+RESULTS:
+[[file:final_dia.eps]]
+
+Let's also grab the averages and standard deviations for the bolt lengths and diameters.
+
+#+BEGIN_SRC matlab :session :results code :exports both
+% sort data into two length groups
+iL1 = 0;
+iL2 = 0;
+for i = 1:1:size(cleanBoltData,1)
+    if cleanBoltData(i,2)>=71 && cleanBoltData(i,2)<=78
+        iL1 = iL1+1;
+        LengthData1(iL1) = cleanBoltData(i,2);
+    elseif cleanBoltData(i,2)>=108 && cleanBoltData(i,2)<=115
+        iL2 = iL2+1;
+        LengthData2(iL2) = cleanBoltData(i,2);
+    end
+end
+
+% Find average and standard deviation of each bolt length
+LengthAvg = [mean(LengthData1) mean(LengthData2)];
+LengthStd = [ std(LengthData1)  std(LengthData2)];
+
+% sort data into two diameter groups
+iD1 = 0;
+iD2 = 0;
+for i = 1:1:size(cleanBoltData,1)
+    if cleanBoltData(i,3)>=12 && cleanBoltData(i,3)<=14
+        iD1 = iD1+1;
+        DiamData1(iD1) = cleanBoltData(i,3);
+    elseif cleanBoltData(i,3)>14 && cleanBoltData(i,3)<=16
+        iD2 = iD2+1;
+        DiamData2(iD2) = cleanBoltData(i,3);
+    end
+end
+
+% Find average and standard deviation of each bolt diameter
+DiamAvg = [mean(DiamData1) mean(DiamData2)];
+DiamStd = [ std(DiamData1)  std(DiamData2)];
+
+len_avg = sprintf('LengthAvg %f %f', LengthAvg(:));
+len_std = sprintf('LengthStd %f %f', LengthStd(:));
+
+dia_avg = sprintf('DiamAvg %f %f', DiamAvg(:));
+dia_std = sprintf('DiamStd %f %f', DiamStd(:));
+
+ans = sprintf('%s\n%s\n%s\n%s\n', len_avg, len_std, dia_avg, dia_std)
+
+#+END_SRC
+
+#+RESULTS:
+#+BEGIN_SRC matlab
+| LengthAvg 76.934286 112.642424 |
+| LengthStd 8.997547 0.817401    |
+| DiamAvg 13.431818 15.086957    |
+| DiamStd 0.979498 0.388506      |
+|                                |
+#+END_SRC
+
