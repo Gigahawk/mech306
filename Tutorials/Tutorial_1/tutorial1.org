@@ -5,6 +5,7 @@
 #+LATEX_HEADER: \setminted{frame=single,bgcolor=bg,samepage=true}
 #+LATEX_HEADER: \setlength{\parindent}{0pt}
 #+LATEX_HEADER: \usepackage{float}
+#+LATEX_HEADER: \usepackage{svg}
 
 * Histogram Exercise
 ** Importing the data
@@ -13,7 +14,7 @@ For the sake of brevity, I have exported the initial ~BoltData~ variable to a se
 Let's import it first.
 #+BEGIN_SRC matlab :session :exports code :results none
 
-ans = load('boltdata');
+load('boltdata');
 
 #+END_SRC
 
@@ -28,6 +29,8 @@ ans = size(BoltData)
 #+BEGIN_SRC matlab
 | 91 | 3 |
 #+END_SRC
+
+#+RESULTS:
 
 
 
@@ -101,6 +104,8 @@ ans = size(cleanBoltData)
 | 72 | 3 |
 #+END_SRC
 
+#+RESULTS:
+
 *** Removing unreasonable diameters
 According to the tutorial instructions reasonable bolt diameter measurements should be between 12 and 16 millimetres, so we remove any values outside of that range.
 
@@ -124,11 +129,14 @@ ans = size(cleanBoltData)
 | 61 | 3 |
 #+END_SRC
 
+#+RESULTS:
+
 *** Further removing outliers
 Now that the obvious outliers have been removed we can graph the histograms for the bolt length and diameter
 #+BEGIN_SRC matlab :session :exports both :results file
-name = 'initial_len.eps';
-histogram(cleanBoltData(:,2),40); % need many bins because of bimodal distribution
+name = 'initiallen.svg';
+% need many bins because of bimodal distribution
+histogram(cleanBoltData(:,2),40); 
 title('Bolt Length')
 xlabel('Bolt Length, mm')
 ylabel('Number of Bolts')
@@ -143,10 +151,10 @@ ans = name
 #+ATTR_LaTeX: :placement [H]
 #+CAPTION: Histogram of bolt length after removing most of the invalid data label:len1 
 #+RESULTS:
-[[file:initial_len.eps]]
+[[file:initiallen.svg]]
 
 #+BEGIN_SRC matlab :session :exports both :results file
-name = 'initial_dia.eps';
+name = 'initialdia.svg';
 histogram(cleanBoltData(:,3),8);
 title('Bolt Diameter')
 xlabel('Bolt Diameter, mm')
@@ -162,7 +170,7 @@ ans = name
 #+ATTR_LaTeX: :placement [H]
 #+CAPTION: Histogram of bolt diameters after removing most of the invalid data 
 #+RESULTS:
-[[file:initial_dia.eps]]
+[[file:initialdia.svg]]
 
 
 From Figure ref:len1 it appears that there are still outliers in the middle of the two peaks.
@@ -175,14 +183,11 @@ filter = (cleanBoltData(:,2) >= 70 & cleanBoltData(:,2) <= 80) | ...
 cleanBoltData = cleanBoltData(filter,:);
 
 #+END_SRC
-
 ** Final Results
-
 Let's plot the final set of data.
-
 #+BEGIN_SRC matlab :session :exports both :results file
-name = 'final_len.eps';
-histogram(cleanBoltData(:,2),40); % need many bins because of bimodal distribution
+name = 'finallen.svg';
+histogram(cleanBoltData(:,2),40);
 title('Bolt Length')
 xlabel('Bolt Length, mm')
 ylabel('Number of Bolts')
@@ -197,10 +202,10 @@ ans = name
 #+ATTR_LaTeX: :placement [H]
 #+CAPTION: Histogram of bolt lengths after removing all of the invalid data 
 #+RESULTS:
-[[file:final_len.eps]]
+[[file:finallen.svg]]
 
 #+BEGIN_SRC matlab :session :exports both :results file
-name = 'final_dia.eps';
+name = 'finaldia.svg';
 histogram(cleanBoltData(:,3),8);
 title('Bolt Diameter')
 xlabel('Bolt Diameter, mm')
@@ -216,7 +221,7 @@ ans = name
 #+ATTR_LaTeX: :placement [H]
 #+CAPTION: Histogram of bolt diameters after removing all of the invalid data 
 #+RESULTS:
-[[file:final_dia.eps]]
+[[file:finaldia.svg]]
 
 Let's also grab the averages and standard deviations for the bolt lengths and diameters.
 
@@ -261,16 +266,264 @@ len_std = sprintf('LengthStd %f %f', LengthStd(:));
 dia_avg = sprintf('DiamAvg %f %f', DiamAvg(:));
 dia_std = sprintf('DiamStd %f %f', DiamStd(:));
 
-ans = sprintf('%s\n%s\n%s\n%s\n', len_avg, len_std, dia_avg, dia_std)
+ans = sprintf('%s\n%s\n%s\n%s', len_avg, len_std, dia_avg, dia_std)
 
 #+END_SRC
 
 #+RESULTS:
 #+BEGIN_SRC matlab
-| LengthAvg 76.934286 112.642424 |
-| LengthStd 8.997547 0.817401    |
-| DiamAvg 13.431818 15.086957    |
-| DiamStd 0.979498 0.388506      |
-|                                |
+| LengthAvg 74.562963 112.631250 |
+| LengthStd 0.878000 0.827915    |
+| DiamAvg 13.166667 15.073171    |
+| DiamStd 0.618347 0.384724      |
 #+END_SRC
 
+#+RESULTS:
+
+* Box Plot exercise
+** Importing the data
+#+BEGIN_SRC matlab :session :exports code :results none
+
+A = [112.5 113 113 113.4 112 112.5 113.5]';
+D = [112 112.5 113.5 112.5 113 113 112.5]';
+E = [112 112 112.5 113 113.5 113.5 114.3]';
+G = [113 111 112 112.5 112.5 110 112.5]';
+H = [111.5 112 114 112 112.5 113 112.5]';
+
+all = [A D E G H];
+All = reshape(all, [], 1);
+
+#+END_SRC
+** Plotting the bolts separately
+#+BEGIN_SRC matlab :session :exports both :results file
+
+name = 'boxsep.svg';
+
+boxplot(all, ['A' 'D' 'E' 'G' 'H']')
+title('Individual Bolt Lengths')
+xlabel('Bolt ID')
+ylabel('Bolt Length, mm')
+
+set(gcf, 'PaperUnits', 'inches', 'PaperPosition', [0 0 7 5])
+
+saveas(gcf, name)
+ans = name
+#+END_SRC
+
+#+ATTR_LaTeX: :placement [H]
+#+CAPTION: Box plot of individual bolt lengths using data supplied from tutorial
+#+RESULTS:
+[[file:boxsep.svg]]
+
+** Plotting the bolts together
+#+BEGIN_SRC matlab :session :exports both :results file
+
+name = 'boxtog.svg';
+
+boxplot(All)
+title('All Bolt Lengths')
+xlabel('All Bolts')
+ylabel('Bolt Length, mm')
+
+set(gcf, 'PaperUnits', 'inches', 'PaperPosition', [0 0 7 5])
+set(gca, 'XTickLabel', {' '})
+
+saveas(gcf, name)
+ans = name
+#+END_SRC
+
+#+ATTR_LaTeX: :placement [H]
+#+CAPTION: Box plot of all bolt lengths using data supplied from tutorial
+#+RESULTS:
+[[file:boxtog.svg]]
+** Signifcant Statistics
+*** Bolt A
+#+BEGIN_SRC matlab :session :results code :exports both
+
+mean_A = mean(A);
+median_A = median(A);
+quartiles_A = quantile(A, [0.25 0.50 0.75]);
+stddev_A = std(A);
+var_A = var(A);
+
+mean_A_str = sprintf('mean_A: %f', mean_A);
+median_A_str = sprintf('median_A: %f', median_A);
+quartiles_A_str = sprintf('quartiles_A: %f %f %f', quartiles_A(:));
+stddev_A_str = sprintf('stddev_A: %f', stddev_A);
+var_A_str = sprintf('var_A: %f', var_A);
+
+ans = sprintf('%s\n%s\n%s\n%s\n%s', ...
+              mean_A_str, median_A_str, ...
+              quartiles_A_str, stddev_A_str, ...
+              var_A_str)
+
+#+END_SRC
+
+#+RESULTS:
+#+BEGIN_SRC matlab
+| mean_A: 112.842857                            |
+| median_A: 113.000000                          |
+| quartiles_A: 112.500000 113.000000 113.300000 |
+| stddev_A: 0.538074                            |
+| var_A: 0.289524                               |
+#+END_SRC
+
+For the sake of brevity only the results will be included in the following secttions
+
+*** Bolt D
+#+BEGIN_SRC matlab :session :results code :exports results
+
+mean_D = mean(D);
+median_D = median(D);
+quartiles_D = quantile(D, [0.25 0.50 0.75]);
+stddev_D = std(D);
+var_D = var(D);
+
+mean_D_str = sprintf('mean_D: %f', mean_D);
+median_D_str = sprintf('median_D: %f', median_D);
+quartiles_D_str = sprintf('quartiles_D: %f %f %f', quartiles_D(:));
+stddev_D_str = sprintf('stddev_D: %f', stddev_D);
+var_D_str = sprintf('var_D: %f', var_D);
+
+ans = sprintf('%s\n%s\n%s\n%s\n%s', ...
+              mean_D_str, median_D_str, ...
+              quartiles_D_str, stddev_D_str, ...
+              var_D_str)
+
+#+END_SRC
+
+#+RESULTS:
+#+BEGIN_SRC matlab
+| mean_D: 112.714286                            |
+| median_D: 112.500000                          |
+| quartiles_D: 112.500000 112.500000 113.000000 |
+| stddev_D: 0.487950                            |
+| var_D: 0.238095                               |
+#+END_SRC
+
+*** Bolt E
+#+BEGIN_SRC matlab :session :results code :exports results
+
+mean_E = mean(E);
+median_E = median(E);
+quartiles_E = quantile(E, [0.25 0.50 0.75]);
+stddev_E = std(E);
+var_E = var(E);
+
+mean_E_str = sprintf('mean_E: %f', mean_E);
+median_E_str = sprintf('median_E: %f', median_E);
+quartiles_E_str = sprintf('quartiles_E: %f %f %f', quartiles_E(:));
+stddev_E_str = sprintf('stddev_E: %f', stddev_E);
+var_E_str = sprintf('var_E: %f', var_E);
+
+ans = sprintf('%s\n%s\n%s\n%s\n%s', ...
+              mean_D_str, median_D_str, ...
+              quartiles_D_str, stddev_D_str, ...
+              var_D_str)
+
+#+END_SRC
+
+#+RESULTS:
+#+BEGIN_SRC matlab
+| mean_E: 112.971429                            |
+| median_E: 113.000000                          |
+| quartiles_E: 112.125000 113.000000 113.500000 |
+| stddev_E: 0.859679                            |
+| var_E: 0.739048                               |
+#+END_SRC
+*** Bolt G
+#+BEGIN_SRC matlab :session :results code :exports results
+
+mean_G = mean(G);
+median_G = median(G);
+quartiles_G = quantile(G, [0.25 0.50 0.75]);
+stddev_G = std(G);
+var_G = var(G);
+
+mean_G_str = sprintf('mean_G: %f', mean_G);
+median_G_str = sprintf('median_G: %f', median_G);
+quartiles_G_str = sprintf('quartiles_G: %f %f %f', quartiles_G(:));
+stddev_G_str = sprintf('stddev_G: %f', stddev_G);
+var_G_str = sprintf('var_G: %f', var_G);
+
+ans = sprintf('%s\n%s\n%s\n%s\n%s', ...
+              mean_G_str, median_G_str, ...
+              quartiles_G_str, stddev_G_str, ...
+              var_G_str)
+
+#+END_SRC
+
+#+RESULTS:
+#+BEGIN_SRC matlab
+| mean_G: 111.928571                            |
+| median_G: 112.500000                          |
+| quartiles_G: 111.250000 112.500000 112.500000 |
+| stddev_G: 1.057850                            |
+| var_G: 1.119048                               |
+#+END_SRC
+*** Bolt H
+#+BEGIN_SRC matlab :session :results code :exports results
+
+mean_H = mean(H);
+median_H = median(H);
+quartiles_H = quantile(H, [0.25 0.50 0.75]);
+stddev_H = std(H);
+var_H = var(H);
+
+mean_H_str = sprintf('mean_H: %f', mean_H);
+median_H_str = sprintf('median_H: %f', median_H);
+quartiles_H_str = sprintf('quartiles_H: %f %f %f', quartiles_H(:));
+stddev_H_str = sprintf('stddev_H: %f', stddev_H);
+var_H_str = sprintf('var_H: %f', var_H);
+
+ans = sprintf('%s\n%s\n%s\n%s\n%s', ...
+              mean_H_str, median_H_str, ...
+              quartiles_H_str, stddev_H_str, ...
+              var_H_str)
+
+#+END_SRC
+
+#+RESULTS:
+#+BEGIN_SRC matlab
+| mean_H: 112.500000                            |
+| median_H: 112.500000                          |
+| quartiles_H: 112.000000 112.500000 112.875000 |
+| stddev_H: 0.816497                            |
+| var_H: 0.666667                               |
+#+END_SRC
+*** All bolts
+#+BEGIN_SRC matlab :session :results code :exports results
+
+mean_All = mean(All);
+median_All = median(All);
+quartiles_All = quantile(All, [0.25 0.50 0.75]);
+stddev_All = std(All);
+var_All = var(All);
+
+mean_All_str = sprintf('mean_All: %f', mean_All);
+median_All_str = sprintf('median_All: %f', median_All);
+quartiles_All_str = sprintf('quartiles_All: %f %f %f', quartiles_All(:));
+stddev_All_str = sprintf('stddev_All: %f', stddev_All);
+var_All_str = sprintf('var_All: %f', var_All);
+
+ans = sprintf('%s\n%s\n%s\n%s\n%s', ...
+              mean_All_str, median_All_str, ...
+              quartiles_All_str, stddev_All_str, ...
+              var_All_str)
+
+#+END_SRC
+
+#+RESULTS:
+#+BEGIN_SRC matlab
+| mean_All: 112.591429                            |
+| median_All: 112.500000                          |
+| quartiles_All: 112.000000 112.500000 113.000000 |
+| stddev_All: 0.822611                            |
+| var_All: 0.676689                               |
+#+END_SRC
+* Conclusion
+Raw data (especially crowd sourced data) is often not in the format you want.
+Because of this it is hard to be confident on the veracity of any specific data point, even ignoring ones that are obviously wrong.
+
+Using software to do data analysis can be very convenient, but adds another layer to the process that can cause hard to find errors (i.e. deleting valid data or not deleting invalid data).
+It is very important to double check any code that is used in data analysis
