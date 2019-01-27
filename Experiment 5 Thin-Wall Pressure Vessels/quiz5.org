@@ -2,7 +2,7 @@
 #+SUBTITLE: Experiment 5a - Pressure Measurement in a Thin-Wall Cylinder
 
 #+LATEX_HEADER: \definecolor{bg}{rgb}{0.95,0.95,0.95}
-#+LATEX_HEADER: \setminted{frame=single,bgcolor=bg}
+#+LATEX_HEADER: \setminted{frame=single,bgcolor=bg,samepage=true}
 
 
 * Background Information
@@ -60,7 +60,7 @@ f'Axial strain: {epsilon_a:.2E}, Circumferential strain: {epsilon_t:.2E}'
 
 #+RESULTS:
 :RESULTS:
-# Out[5]:
+# Out[28]:
 : 'Axial strain: 2.36E-04, Circumferential strain: 4.71E-04'
 :END:
 
@@ -111,8 +111,8 @@ d.save('quarter.svg')
 
 #+RESULTS:
 :RESULTS:
-# Out[14]:
-[[file:./obipy-resources/GeOrKD.png]]
+# Out[29]:
+[[file:./obipy-resources/3ZHh1c.png]]
 :END:
 
 ** Question 3

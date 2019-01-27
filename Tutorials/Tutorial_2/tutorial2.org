@@ -1,0 +1,331 @@
+#+TITLE: MECH 306 Tutorial 2:
+#+SUBTITLE: Random variables, Central Limit Theorem, and Error Propagation
+
+#+PROPERTY: header-args :tangle yes
+#+LATEX_HEADER: \definecolor{bg}{rgb}{0.95,0.95,0.95}
+#+LATEX_HEADER: \setminted{frame=single,bgcolor=bg,samepage=true}
+#+LATEX_HEADER: \setlength{\parindent}{0pt}
+#+LATEX_HEADER: \usepackage{float}
+#+LATEX_HEADER: \usepackage{svg}
+
+* Part 1
+** Importing the data
+Let's first set up the initial variables.
+#+BEGIN_SRC matlab :session :exports code :results none
+s = 1;
+M = [1,4,16,32];
+#+END_SRC
+
+Let's also pre-allocate a matrix to hold 1000 $\varepsilon$ values for each $M$
+#+BEGIN_SRC matlab :session :exports code :results none
+epsilon = zeros([length(M),1000]);
+#+END_SRC
+
+** Calculating $\varepsilon$
+Next let's generate 1000 values of $\varepsilon_i$ according to
+
+\begin{align*}
+\varepsilon_i &= \sum^M_{j=1}\delta_j & \delta_j &= \pm \frac{s}{\sqrt{M}}
+\end{align*}
+
+#+BEGIN_SRC matlab :session :exports code :results none
+for i = 1:length(M)
+    epsilon(i,:) = sum((2*round(rand(M(i), 1000)) - 1) * s/sqrt(M(i)), 1);
+end
+#+END_SRC
+
+** Plotting the results
+First let's create a normal distribution to compare our results to
+#+BEGIN_SRC matlab :session :exports code :results none
+x = linspace(-3, 3, 10000);
+std_dev = normpdf(x, 0, 1);
+#+END_SRC
+
+Next let's overlay the plot of our normal distribution on top of the histogram of each $\varepsilon_i$
+
+#+BEGIN_SRC matlab :session :exports both :results file
+name = 'norm_plot.svg'
+
+for i = 1:length(M)
+    subplot(2, 2, i);
+    histogram(epsilon(i,:), 'Normalization', 'pdf', 'DisplayStyle', 'stairs');
+    hold on;
+    plot(x, std_dev);
+
+    xlabel('Value');
+    ylabel('Probability');
+    title_str = sprintf('Coin Flip Histogram %d, M = %d\n', i, M(i));
+    title(title_str);
+    M_label = sprintf('M = %d', M(i));
+    legend({M_label, 'Normal Distribution'}, ...
+           'Location', 'southoutside', 'FontSize', 11);
+    hold off;
+end
+
+set(gcf, 'PaperUnits', 'inches', 'PaperPosition', [0 0 6 6])
+
+saveas(gcf, name);
+ans = name
+#+END_SRC
+
+#+ATTR_LaTeX: :placement [H]
+#+CAPTION: Histogram plots of $\varepsilon_i$ against the normal distribution for various $M$ values.label:coinflip 
+#+RESULTS:
+[[file:norm_plot.svg]]
+
+** Conclusion
+From Figure ref:coinflip, we can see that the histogram approaches the normal distribution for higher $M$ values, just as the Central Limit Theorem predicts.
+
+* Part 2
+** Importing the data
+Let's first set up the initial variables.
+#+BEGIN_SRC matlab :session :exports code :results none
+% number of simulated parameters
+num_sim = 10000;
+
+m_L = 0.7;
+m_dL = 0.014;
+
+m_h = 0.03;
+m_dh = 0.003;
+
+m_b = 0.04;
+m_db = 0.0004;
+
+m_F = 80;
+m_dF = 0.8;
+
+m_delta = 0.008;
+m_d_delta = 0.00008;
+#+END_SRC
+
+** Analytically Deriving $\sigma_E$ (a)
+For some function $f$ that takes independent variables $X_1, X_2, \ldots X_n$ where each $X$ is composed of some average value $\bar{x_n}$ with standard deviation $\sigma_{x_n}$, the expected value of $f$ and its standard deviation $\sigma_f$ are:
+
+\[
+\bar{f} = f(\bar{x}_1, \bar{x}_2, \ldots \bar{x}_n)
+\]
+\[
+\sigma_f = \left.\sqrt{
+\left(\frac{\partial f}{\partial X_1}\sigma_{x_1}\right)^2 + 
+\left(\frac{\partial f}{\partial X_2}\sigma_{x_2}\right)^2 + 
+\ldots + 
+\left(\frac{\partial f}{\partial X_n}\sigma_{x_n}\right)^2
+}
+\right|_{(x_1, x_2, \ldots, x_n)}
+\]
+
+We already know the deflection formula for a simple rectangular beam:
+
+\begin{align*}
+\delta &= \frac{FL^3}{3EI} & I &= \frac{bh^3}{12}
+\end{align*}
+
+Solving for Young's modulus $E$ we get:
+
+\[
+E = \frac{4FL^3}{\delta bh^3}
+\]
+
+Let's set this up in code.
+#+BEGIN_SRC matlab :session :exports code :results none
+syms L h b F delta;
+
+E = (4*F*L^3)/(delta*b*h^3);
+#+END_SRC
+
+We can now calculate the average value for $E$.
+
+#+BEGIN_SRC matlab :session :exports code :results none
+m_E = double(subs(E, {L,  h,  b,  F,  delta, }, ...
+                  {m_L, m_h, m_b, m_F, m_delta}));
+#+END_SRC
+
+Now we can calculate all of the partial derivatives of $E$
+
+#+BEGIN_SRC matlab :session :exports code :results none
+dEdL = diff(E,L);
+dEdh = diff(E,h);
+dEdb = diff(E,b);
+dEdF = diff(E,F);
+dEd_delta = diff(E,delta);
+#+END_SRC
+
+Using these partial derivatives we can set up the calculation for $\sigma_E$.
+
+#+BEGIN_SRC matlab :session :exports both :results code
+
+syms dL dh db dF d_delta;
+
+dE = sqrt(...
+    (dEdL*dL)^2 + ...
+    (dEdh*dh)^2 + ...
+    (dEdb*db)^2 + ...
+    (dEdF*dF)^2 + ...
+    (dEd_delta*d_delta)^2);
+
+sigma_e = double(subs(dE, {L, dL, h, dh, b, db, F, dF, delta, d_delta}, ...
+           {m_L, m_dL, m_h, m_dh, m_b, m_db, m_F, m_dF, m_delta, m_d_delta}))
+
+ans = sigma_e
+
+#+END_SRC
+
+#+RESULTS:
+#+BEGIN_SRC matlab
+3.8928e+09
+#+END_SRC
+
+#+RESULTS:
+: 3.8928e+09
+
+** Calculating Standard Deviation with a Monte Carlo Simulation (b)
+Let's generate 10000 normally distributed values.
+
+#+BEGIN_SRC matlab :session :exports code :results none
+N = 10000;
+
+n_L = m_L + m_dL*randn(1, N);
+n_h = m_h + m_dh*randn(1, N);
+n_b = m_b + m_db*randn(1, N);
+n_F = m_F + m_dF*randn(1, N);
+n_delta = m_delta + m_d_delta*randn(1, N);
+#+END_SRC
+
+Before we calculate values for $E$ we should convert the symbolic function ~E~ to a normal function for lower computation time.
+
+#+BEGIN_SRC matlab :session :exports code :results none
+f_E = matlabFunction(E)
+#+END_SRC
+
+Now we can calculate 10000 values for $E$ and find the standard deviation.
+
+#+BEGIN_SRC matlab :session :exports code :results code
+% Convert E to a standard function because
+% repeated symbolic computation is really slow
+n_E = f_E(n_F, n_L, n_b, n_delta, n_h)
+stddev_E = std(n_E);
+ans = stddev_E
+#+END_SRC
+
+#+RESULTS:
+#+BEGIN_SRC matlab
+4.5603e+09
+#+END_SRC
+
+#+RESULTS:
+: 4.5603e+09
+
+This value differs from the one derived analytically, but it's hard to know how significant this difference is.
+To compare we will use a relative standard deviation.
+
+#+BEGIN_SRC matlab :session :exports both :results code
+rel_stddev_n_E = std(n_E)/m_E
+rel_stddev_E = sigma_e/m_E
+ans = [rel_stddev_n_E, rel_stddev_E]
+#+END_SRC
+
+#+RESULTS:
+#+BEGIN_SRC matlab
+| 0.35897 | 0.30643 |
+#+END_SRC
+
+
+So from the relative standard deviations we can see that the analytical and simulated results are reasonably similar.
+
+
+** Plotting the results
+To further convince ourselves that the standard deviations are reasonably close we can overlay their plots
+#+BEGIN_SRC matlab :session :exports both :results file
+name = 'e_overlay.svg'
+E_x = linspace(-3*sigma_e+m_E, 3*sigma_e+m_E, 10000);
+E_std_dev = normpdf(E_x, m_E, sigma_e);
+
+figure();
+
+histogram(n_E, 'Normalization', 'pdf', 'DisplayStyle', 'stairs');
+hold on;
+plot(E_x, E_std_dev);
+
+xlabel("Young's Modulus E");
+ylabel('Probability');
+title('Simulated vs Analytical Normal Distribution');
+legend({'Simulated', 'Analytical'}, 'FontSize', 11)
+hold off;
+
+set(gcf, 'PaperUnits', 'inches', 'PaperPosition', [0 0 7 5])
+
+saveas(gcf, name);
+ans = name
+#+END_SRC
+
+#+CAPTION: Comparison of normal distribution plots generated by an analytical method and simulation. label:simvsanal
+#+RESULTS:
+[[file:e_overlay.svg]]
+
+#+BEGIN_SRC ipython :session :exports none :results none
+# Ghetto hack to fix pdf export
+with open('e_overlay.svg', 'r') as f:
+    s = f.read()
+
+s = s.replace('>#</text', '>x</text')
+
+with open('e_overlay.svg', 'w') as f:
+    f.write(s)
+#+END_SRC
+
+Looking at Figure ref:simvsanal, we can further see that either method is fairly comparable.
+
+Let's also plot the normalized histograms.
+
+#+BEGIN_SRC matlab :session :exports both :results file
+name = 'norm_hist_overlay.svg'
+
+figure();
+hold on;
+histogram(n_L/m_L, 'Normalization', 'pdf', 'DisplayStyle', 'stairs');
+histogram(n_h/m_h, 'Normalization', 'pdf', 'DisplayStyle', 'stairs');
+histogram(n_b/m_b, 'Normalization', 'pdf', 'DisplayStyle', 'stairs');
+histogram(n_F/m_F, 'Normalization', 'pdf', 'DisplayStyle', 'stairs');
+histogram(n_delta/m_delta, 'Normalization', 'pdf', 'DisplayStyle', 'stairs');
+histogram(n_E/m_E, 'Normalization', 'pdf', 'DisplayStyle', 'stairs');
+xlabel('Measured Value of Paramenter');
+ylabel('Relative Frequency of Parameter');
+xlim([0 4]);
+title('Variance of Parameters')
+legend({'L/L_x','h/h_x','b/b_x','F/F_x','delta/delta_x','E/E0'},...
+       'FontSize', 13);
+hold off;
+
+set(gcf, 'PaperUnits', 'inches', 'PaperPosition', [0 0 7 4])
+
+saveas(gcf, name);
+ans = name
+
+#+END_SRC
+
+#+RESULTS:
+[[file:norm_hist_overlay.svg]]
+
+#+BEGIN_SRC matlab :session :exports both :results file
+name = 'norm_hist_e.svg'
+figure();
+histogram(n_E/m_E,'Normalization','pdf','DisplayStyle','stairs');
+xlabel('Measured Value of E')
+ylabel('Relative Frequency of E')
+xlim([0 4]);
+title('Variance of E')
+
+set(gcf, 'PaperUnits', 'inches', 'PaperPosition', [0 0 7 4])
+
+saveas(gcf, name);
+ans = name
+
+#+END_SRC
+
+#+RESULTS:
+[[file:norm_hist_e.svg]]
+** Minimizing Error (c)
+In the beam formulas above, both $L$ and $h$ are raised to the third power, meaning that they will be the most sensitive to change. 
+The precision of the measurement of these values should be prioritized to minimize error.
+

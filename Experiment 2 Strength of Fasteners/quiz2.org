@@ -2,7 +2,7 @@
 #+SUBTITLE: Experiment 2 - Strength of Fasterners
 
 #+LATEX_HEADER: \definecolor{bg}{rgb}{0.95,0.95,0.95}
-#+LATEX_HEADER: \setminted{frame=single,bgcolor=bg}
+#+LATEX_HEADER: \setminted{frame=single,bgcolor=bg,samepage=true}
 
 * Background Information
 
@@ -75,7 +75,7 @@ f'{preload:.2f} N'
 
 #+RESULTS:
 :RESULTS:
-# Out[38]:
+# Out[2]:
 : '13798.74 N'
 :END:
 
@@ -126,7 +126,7 @@ f'{(r_face*1000):.2f} mm'
 
 #+RESULTS:
 :RESULTS:
-# Out[40]:
+# Out[4]:
 : '4.91 mm'
 :END:
 
@@ -147,7 +147,7 @@ f'{torque:.2f} Nm'
 
 #+RESULTS:
 :RESULTS:
-# Out[41]:
+# Out[5]:
 : '31.40 Nm'
 :END:
 
@@ -203,7 +203,7 @@ f'{stiffness:.2f} N/m'
 
 #+RESULTS:
 :RESULTS:
-# Out[43]:
+# Out[7]:
 : '42541906.00 N/m'
 :END:
 
@@ -224,7 +224,7 @@ f'{turns:.2f} number of turns'
 
 #+RESULTS:
 :RESULTS:
-# Out[44]:
+# Out[8]:
 : '0.23 number of turns'
 :END:
 
@@ -278,7 +278,7 @@ f'{preload:.2f} N'
 
 #+RESULTS:
 :RESULTS:
-# Out[48]:
+# Out[11]:
 : '115896.83 N'
 :END:
 
@@ -295,7 +295,7 @@ f'{stress:.2f} psi'
 
 #+RESULTS:
 :RESULTS:
-# Out[49]:
+# Out[12]:
 : '3064452142.01 psi'
 :END:
 
