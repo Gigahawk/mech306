@@ -1,7 +1,6 @@
 #+TITLE: MECH 306 Tutorial 5:
 #+SUBTITLE: Introduction to Machine Learning
 #+OPTIONS: toc:nil
-#+LATEX_HEADER: \geometry{margin=1in}
 * Models Tested
 #+ATTR_LATEX: :align r|l l l l
 | Model # | Predictors     | Algorithm    | Validation | Accuracy |
