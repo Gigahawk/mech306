@@ -1,0 +1,42 @@
+#+TITLE: MECH 306 Tutorial 5:
+#+SUBTITLE: Introduction to Machine Learning
+#+OPTIONS: toc:nil
+#+LATEX_HEADER: \geometry{margin=1in}
+* Models Tested
+#+ATTR_LATEX: :align r|l l l l
+| Model # | Predictors     | Algorithm    | Validation | Accuracy |
+|---------+----------------+--------------+------------+----------|
+|       1 | All            | Medium Tree  | 5-fold     |    60.6% |
+|       2 | All            | Linear SVM   | 5-fold     |    59.7% |
+|       3 | All            | Cubic SVM    | 5-fold     |    64.0% |
+|       4 | All            | Fine KNN     | 5-fold     |    65.5% |
+|       5 | All            | Weighted KNN | 5-fold     |    70.0% |
+|       6 | 1, 4, 5, 7, 10 | Medium Tree  | 5-fold     |    50.9% |
+|       7 | 1, 4, 5, 7, 10 | Linear SVM   | 5-fold     |    52.3% |
+|       8 | 1, 4, 5, 7, 10 | Cubic SVM    | 5-fold     |    52.9% |
+|       9 | 1, 4, 5, 7, 10 | Fine KNN     | 5-fold     |    62.3% |
+|      10 | 1, 4, 5, 7, 10 | Weighted KNN | 5-fold     |    64.6% |
+
+#+ATTR_LATEX: :align r|l
+| Model # | Comment                                                                     |
+|---------+-----------------------------------------------------------------------------|
+|       1 | Reasonably high accuracy, doesn't make too many far errors                  |
+|       2 | Only predicts average values to maximize accuracy                           |
+|       3 | Fewer correct answers overall, more realistic spread of predictions         |
+|       4 | High accuracy, doesn't make too many far errors                             |
+|       5 | Trades some far error for slightly higher accuracy                          |
+|       6 | Similar behavior to Model 1, slightly lower acuracy due to fewer predictors |
+|       7 | Similar behavior to Model 2, slightly lower acuracy due to fewer predictors |
+|       8 | Similar behavior to Model 3, slightly lower acuracy due to fewer predictors |
+|       9 | Similar behavior to Model 4, slightly lower acuracy due to fewer predictors |
+|      10 | Similar behavior to Model 5, slightly lower acuracy due to fewer predictors |
+* Confusion Matrix of Weighted KNN
+[[./confusion.svg]]
+* Justification
+Since the training data is highly imbalanced (appears to follow a roughly normal distribution with $\mu = 5.6$ and $\sigma=0.8$).
+Assuming the validation set has a similar distribution, it would make sense to use an algorithm that attempts to compensate for lower frequency data points.
+
+The confusion matrix also shows that this model does not really focus on overall accuracy at the expense of making "far" classifications.
+This is good since the score function punishes this behavior.
+
+
